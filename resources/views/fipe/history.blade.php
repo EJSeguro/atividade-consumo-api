@@ -1,0 +1,35 @@
+@extends('layouts.app')
+
+@section('title', 'Histórico de preços')
+
+@section('content')
+    <div class="breadcrumb">
+        <a href="{{ route('fipe.index') }}">Início</a>
+        / <a href="{{ route('fipe.years', ['fipeCode' => $fipeCode, 'modelo' => $modelName]) }}">{{ $modelName ?? $fipeCode }}</a>
+        / Histórico
+    </div>
+
+    <h1>Histórico de preços</h1>
+    <p><strong>Código FIPE:</strong> {{ $fipeCode }} &middot; <strong>Ano:</strong> {{ $yearId }}</p>
+
+    @if ($history->isEmpty())
+        <p class="empty">Nenhum histórico disponível.</p>
+    @else
+        <table>
+            <thead>
+                <tr>
+                    <th>Mês de referência</th>
+                    <th>Preço</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($history as $row)
+                    <tr>
+                        <td>{{ $row['reference'] ?? '-' }}</td>
+                        <td class="price">@include('fipe.partials.price', ['value' => $row['price']])</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @endif
+@endsection
