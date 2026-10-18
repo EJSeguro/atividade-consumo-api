@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Início')
+
 @section('content')
     <h1>Selecione o tipo de veículo</h1>
 

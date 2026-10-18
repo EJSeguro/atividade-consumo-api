@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\FipeService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use RuntimeException;
 
 class FipeController extends Controller
@@ -70,22 +71,22 @@ class FipeController extends Controller
     public function years(Request $request, string $fipeCode)
     {
         return $this->attempt(function () use ($request, $fipeCode) {
-            $years = collect($this->fipe->years($fipeCode))
+            $data = $this->fipe->years($fipeCode);
+
+            $years = collect($data['years'] ?? [])
                 ->map(fn ($item) => [
-                    'id' => $this->pick($item, ['year_id', 'id', 'codigo']),
-                    'year' => $this->pick($item, ['model_year', 'year', 'ano', 'ano_modelo']),
-                    'fuel' => $this->pick($item, ['fuel', 'combustivel']),
-                    'price' => $this->pick($item, ['price', 'preco', 'valor']),
-                    'model' => $this->pick($item, ['model', 'modelo']),
-                    'brand' => $this->pick($item, ['brand', 'marca']),
-                    'reference' => $this->pick($item, ['reference_month', 'reference', 'mes_referencia']),
+                    'id' => $this->pick($item, ['year_id', 'id']),
+                    'year' => $this->pick($item, ['model_year', 'year']),
+                    'fuel' => $this->pick($item, ['fuel']),
+                    'price' => $this->pick($item, ['price']),
                 ])
                 ->values();
 
             return view('fipe.years', [
                 'fipeCode' => $fipeCode,
-                'modelName' => $request->query('modelo') ?? $years->pluck('model')->filter()->first(),
-                'brandName' => $years->pluck('brand')->filter()->first(),
+                'modelName' => $data['model'] ?? $request->query('modelo'),
+                'brandName' => $data['brand'] ?? null,
+                'reference' => $data['reference'] ?? null,
                 'years' => $years,
             ]);
         });
@@ -94,17 +95,22 @@ class FipeController extends Controller
     public function history(Request $request, string $fipeCode, string $yearId)
     {
         return $this->attempt(function () use ($request, $fipeCode, $yearId) {
-            $history = collect($this->fipe->history($fipeCode, $yearId))
+            $data = $this->fipe->history($fipeCode, $yearId);
+
+            $history = collect($data['history'] ?? [])
                 ->map(fn ($item) => [
-                    'reference' => $this->pick($item, ['reference_month', 'reference', 'month', 'mes_referencia', 'mes', 'date']),
-                    'price' => $this->pick($item, ['price', 'preco', 'valor']),
+                    'reference' => $this->formatMonth($this->pick($item, ['month', 'reference'])),
+                    'price' => $this->pick($item, ['price']),
                 ])
                 ->values();
 
             return view('fipe.history', [
                 'fipeCode' => $fipeCode,
                 'yearId' => $yearId,
-                'modelName' => $request->query('modelo'),
+                'modelName' => $data['model'] ?? $request->query('modelo'),
+                'brandName' => $data['brand'] ?? null,
+                'modelYear' => $data['model_year'] ?? $yearId,
+                'fuel' => $data['fuel'] ?? null,
                 'history' => $history,
             ]);
         });
@@ -117,6 +123,15 @@ class FipeController extends Controller
         } catch (RuntimeException $e) {
             return redirect()->route('fipe.index')->with('error', $e->getMessage());
         }
+    }
+
+    protected function formatMonth(?string $month): ?string
+    {
+        if ($month && preg_match('/^\d{4}-\d{2}$/', $month)) {
+            return Carbon::createFromFormat('Y-m', $month)->format('m/Y');
+        }
+
+        return $month;
     }
 
     protected function pick(mixed $item, array $keys): mixed

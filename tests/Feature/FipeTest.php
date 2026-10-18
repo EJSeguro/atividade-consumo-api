@@ -44,8 +44,8 @@ class FipeTest extends TestCase
     {
         Http::fake([
             'api.invertexto.com/v1/fipe/models/21' => Http::response([
-                ['model' => 'Uno Mille 1.0', 'fipe_code' => '001004-9'],
-                ['model' => 'Palio 1.0', 'fipe_code' => '001001-4'],
+                ['id' => 1, 'model' => 'Uno Mille 1.0', 'fipe_code' => '001004-9', 'years' => '1990 a 2013'],
+                ['id' => 2, 'model' => 'Palio 1.0', 'fipe_code' => '001001-4', 'years' => '1996 a 2017'],
             ]),
         ]);
 
@@ -59,12 +59,19 @@ class FipeTest extends TestCase
     {
         Http::fake([
             'api.invertexto.com/v1/fipe/years/*' => Http::response([
-                ['year_id' => '2010-1', 'model_year' => 2010, 'fuel' => 'Gasolina', 'price' => 15000.5],
+                'brand' => 'Fiat',
+                'model' => 'Uno Mille 1.0',
+                'reference' => 'outubro de 2026',
+                'years' => [
+                    ['year_id' => '2010-1', 'model_year' => '2010', 'fuel' => 'Gasolina', 'price' => 15000.5],
+                ],
             ]),
         ]);
 
         $this->get('/modelos/001004-9')
             ->assertOk()
+            ->assertSee('Uno Mille 1.0')
+            ->assertSee('outubro de 2026')
             ->assertSee('2010')
             ->assertSee('R$ 15.000,50');
     }
@@ -73,13 +80,19 @@ class FipeTest extends TestCase
     {
         Http::fake([
             'api.invertexto.com/v1/fipe/history*' => Http::response([
-                ['reference_month' => 'janeiro de 2026', 'price' => 14000],
+                'brand' => 'Fiat',
+                'model' => 'Uno Mille 1.0',
+                'model_year' => '2010',
+                'fuel' => 'Gasolina',
+                'history' => [
+                    ['month' => '2026-01', 'price' => 14000],
+                ],
             ]),
         ]);
 
         $this->get('/modelos/001004-9/anos/2010-1')
             ->assertOk()
-            ->assertSee('janeiro de 2026')
+            ->assertSee('01/2026')
             ->assertSee('R$ 14.000,00');
     }
 

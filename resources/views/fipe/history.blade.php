@@ -10,7 +10,19 @@
     </div>
 
     <h1>Histórico de preços</h1>
-    <p><strong>Código FIPE:</strong> {{ $fipeCode }} &middot; <strong>Ano:</strong> {{ $yearId }}</p>
+    <p>
+        @if ($brandName)
+            <strong>Marca:</strong> {{ $brandName }} &middot;
+        @endif
+        @if ($modelName)
+            <strong>Modelo:</strong> {{ $modelName }} &middot;
+        @endif
+        <strong>Ano:</strong> {{ $modelYear == 32000 ? 'Zero km' : $modelYear }}
+        @if ($fuel)
+            &middot; <strong>Combustível:</strong> {{ $fuel }}
+        @endif
+        &middot; <strong>Código FIPE:</strong> {{ $fipeCode }}
+    </p>
 
     @if ($history->isEmpty())
         <p class="empty">Nenhum histórico disponível.</p>

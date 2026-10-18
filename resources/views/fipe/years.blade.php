@@ -13,6 +13,9 @@
             <strong>Marca:</strong> {{ $brandName }} &middot;
         @endif
         <strong>Código FIPE:</strong> {{ $fipeCode }}
+        @if ($reference)
+            &middot; <strong>Referência:</strong> {{ $reference }}
+        @endif
     </p>
 
     @if ($years->isEmpty())
@@ -24,7 +27,6 @@
                     <th>Ano modelo</th>
                     <th>Combustível</th>
                     <th>Preço</th>
-                    <th>Referência</th>
                     <th></th>
                 </tr>
             </thead>
@@ -34,7 +36,6 @@
                         <td>{{ $year['year'] == 32000 ? 'Zero km' : ($year['year'] ?? '-') }}</td>
                         <td>{{ $year['fuel'] ?? '-' }}</td>
                         <td class="price">@include('fipe.partials.price', ['value' => $year['price']])</td>
-                        <td>{{ $year['reference'] ?? '-' }}</td>
                         <td>
                             @if ($year['id'])
                                 <a href="{{ route('fipe.history', ['fipeCode' => $fipeCode, 'yearId' => $year['id'], 'modelo' => $modelName]) }}">Histórico</a>
